@@ -1,13 +1,5 @@
 ﻿Imports System
-Imports System.Collections.Generic
-Imports System.Linq
 Public Class Form1
-    Private Sub DataGridView1_KeyDown(sender As Object, e As KeyEventArgs) Handles DataGridView1.KeyDown
-        If e.Control AndAlso e.KeyCode = Keys.C Then
-
-        End If
-    End Sub
-
     Private Sub Form1_Shown(sender As Object, e As EventArgs) Handles Me.Shown
         For r = 0 To 100
             DataGridView1.Columns.Add(CStr(r), CStr(r))
@@ -38,16 +30,18 @@ Public Class Form1
         Next
 
         Dim result As String =
-        "\begin{table}[h]" & vbCrLf &
-        vbTab & "\begin{center}" & vbCrLf &
-        vbTab & vbTab & "\caption{}" & vbCrLf &
-        vbTab & vbTab & "\label{tbl:}" & vbCrLf &
-        vbTab & vbTab & "\begin{tabular}{" & String.Concat(Enumerable.Repeat("c|", maxcolumn - mincolumn)) & "c" & "}" & vbCrLf &
-        vbTab & vbTab & vbTab & "\hline" & vbCrLf
+            "\begin{table}[h]" & vbCrLf &
+            vbTab & "\begin{center}" & vbCrLf &
+            vbTab & vbTab & "\caption{}" & vbCrLf &
+            vbTab & vbTab & "\label{tbl:}" & vbCrLf &
+            vbTab & vbTab & "\begin{tabular}{" & String.Concat(Enumerable.Repeat("c|", maxcolumn - mincolumn)) & "c" & "}" & vbCrLf &
+            vbTab & vbTab & vbTab & "\hline" & vbCrLf
         result &= vbTab & vbTab & vbTab
+
         For x = mincolumn To maxcolumn - 1
             result &= CStr(DataGridView1.Rows(minrow).Cells(x).Value) & " & "
         Next
+
         result &= CStr(DataGridView1.Rows(minrow).Cells(maxcolumn).Value) & " \\" & vbCrLf &
             vbTab & vbTab & vbTab & "\hline" & vbCrLf
 
@@ -67,5 +61,25 @@ Public Class Form1
 
         Debug.WriteLine(result)
         Clipboard.SetText(result)
+    End Sub
+
+    Private Sub Csvもしくはtsv形式のデータを貼り付けToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles Csvもしくはtsv形式のデータを貼り付けToolStripMenuItem.Click
+        If DataGridView1.IsCurrentCellInEditMode = False Then
+
+            Dim gettext As String = Clipboard.GetText()
+
+            'HACK データに,が含まれるとそこで区切られる
+            gettext = gettext.Replace(",", vbTab)
+
+            Dim sr As New IO.StringReader(gettext)
+            Dim insertRowIndex As Integer = DataGridView1.CurrentCell.RowIndex
+            While sr.Peek() > -1
+                Dim vals As String() = sr.ReadLine.Split(ControlChars.Tab)
+                For i = DataGridView1.CurrentCell.ColumnIndex To DataGridView1.CurrentCell.ColumnIndex + vals.Length - 1
+                    DataGridView1.Rows(insertRowIndex).Cells(i).Value = vals(i - DataGridView1.CurrentCell.ColumnIndex)
+                Next i
+                insertRowIndex += 1
+            End While
+        End If
     End Sub
 End Class
