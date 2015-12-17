@@ -1,6 +1,21 @@
-﻿Public Class Form1
+﻿Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Public Class Form1
+    Private Sub DataGridView1_KeyDown(sender As Object, e As KeyEventArgs) Handles DataGridView1.KeyDown
+        If e.Control AndAlso e.KeyCode = Keys.C Then
 
-    Private Sub DataGridView1_MouseDown(sender As Object, e As MouseEventArgs) Handles DataGridView1.MouseUp
+        End If
+    End Sub
+
+    Private Sub Form1_Shown(sender As Object, e As EventArgs) Handles Me.Shown
+        For r = 0 To 100
+            DataGridView1.Columns.Add(CStr(r), CStr(r))
+            DataGridView1.Rows.Add()
+        Next
+    End Sub
+
+    Private Sub 選択箇所をTeX形式でクリップボードへコピーToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles 選択箇所をTeX形式でクリップボードへコピーToolStripMenuItem.Click
         Dim minrow As Integer = DataGridView1.RowCount
         Dim mincolumn As Integer = DataGridView1.ColumnCount
         Dim maxrow As Integer = 0
@@ -22,32 +37,35 @@
             End If
         Next
 
-
         Dim result As String =
-            "\begin{table}[h]" & vbCrLf &
-            vbTab & "\begin{center}" & vbCrLf &
-            vbTab & vbTab & "\caption{}" & vbCrLf &
-            vbTab & vbTab & "\label{tbl:}" & vbCrLf &
-            vbTab & vbTab & "\begin{tabular}{c|c}" & vbCrLf &
+        "\begin{table}[h]" & vbCrLf &
+        vbTab & "\begin{center}" & vbCrLf &
+        vbTab & vbTab & "\caption{}" & vbCrLf &
+        vbTab & vbTab & "\label{tbl:}" & vbCrLf &
+        vbTab & vbTab & "\begin{tabular}{" & String.Concat(Enumerable.Repeat("c|", maxcolumn - mincolumn)) & "c" & "}" & vbCrLf &
+        vbTab & vbTab & vbTab & "\hline" & vbCrLf
+        result &= vbTab & vbTab & vbTab
+        For x = mincolumn To maxcolumn - 1
+            result &= CStr(DataGridView1.Rows(minrow).Cells(x).Value) & " & "
+        Next
+        result &= CStr(DataGridView1.Rows(minrow).Cells(maxcolumn).Value) & " \\" & vbCrLf &
             vbTab & vbTab & vbTab & "\hline" & vbCrLf
 
-        Debug.WriteLine(maxrow)
-        For y = minrow To maxrow
-            Dim row As DataGridViewRow = DataGridView1.Rows(y)
+        For y = minrow + 1 To maxrow
+            result &= vbTab & vbTab & vbTab
             For x = mincolumn To maxcolumn - 1
-                result &= vbTab & vbTab & vbTab & CStr(row.Cells(x).Value) & " & "
+                result &= CStr(DataGridView1.Rows(y).Cells(x).Value) & " & "
             Next
-            result &= CStr(row.Cells(maxcolumn).Value) & " \\" & vbCrLf
+            result &= CStr(DataGridView1.Rows(y).Cells(maxcolumn).Value) & " \\" & vbCrLf
         Next
 
         result &=
-             vbTab & vbTab & vbTab & "\hline" & vbCrLf &
+            vbTab & vbTab & vbTab & "\hline" & vbCrLf &
             vbTab & vbTab & "\end{tabular}" & vbCrLf &
             vbTab & "\end{center}" & vbCrLf &
             "\end{table}"
-        Debug.WriteLine(result)
-    End Sub
 
-    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Debug.WriteLine(result)
+        Clipboard.SetText(result)
     End Sub
 End Class
